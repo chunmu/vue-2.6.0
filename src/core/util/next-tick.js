@@ -84,6 +84,18 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
   }
 }
 
+// nextTick的实现方式
+// dom的修改是同步的  修改dom之后的dom对象 对于js是可见的  
+// 渲染是异步的   js引擎和渲染引擎互斥
+// 通过promise或者 setTimeout 或者 MutationObserver等注册宏任务或微任务 
+// 把用户注册的回调方法放在下一次的宏任务或者微任务中执行
+// 例如  code1   nextTick()   code2
+// js执行code1代码块，执行nextTick且注册宏任务和微任务，继续执行当前流程的任务栈，js主线程跑完本轮tick任务循环时
+// 开始轮询上次注册的任务队列 
+// 这是共用方法 也就是所有组件或者所有注册nextTick的cb都会在这边统一处理
+// ctx可以识别上下文
+// 关于promise和setTimeout的执行顺序  可以查看这篇文章https://blog.csdn.net/qq_36742720/article/details/103976292
+
 export function nextTick (cb?: Function, ctx?: Object) {
   let _resolve
   callbacks.push(() => {
@@ -97,6 +109,11 @@ export function nextTick (cb?: Function, ctx?: Object) {
       _resolve(ctx)
     }
   })
+  // 避免多次执行 在上部分压入数组的过程中 已经执行完毕 
+  // 已经成功把要处理的cb压入callbacks
+  // 如果pending=true,上一次的flushCallbacks还未执行，这次压入的会和之前的一起flush
+  // 如果pending=false,则开启一次新的flush
+  // 避免了n次执行的情况
   if (!pending) {
     pending = true
     timerFunc()

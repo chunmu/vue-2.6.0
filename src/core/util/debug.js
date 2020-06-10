@@ -35,6 +35,7 @@ if (process.env.NODE_ENV !== 'production') {
 
   formatComponentName = (vm, includeFile) => {
     if (vm.$root === vm) {
+      // 如果是根节点  返回<Root>标签
       return '<Root>'
     }
     const options = typeof vm === 'function' && vm.cid != null
@@ -55,6 +56,15 @@ if (process.env.NODE_ENV !== 'production') {
     )
   }
 
+  // repeat工具方法的实现
+  // 假设n = 1
+  // 1 % 2 === 1
+  // res += str
+
+  // 假设n === 3
+  // 3 % 2 === 1
+  // str复刻
+  // 左移运算 后续str都是翻倍长度之后的计算  n左移之后的值 都是2的某个倍数
   const repeat = (str, n) => {
     let res = ''
     while (n) {
@@ -84,6 +94,7 @@ if (process.env.NODE_ENV !== 'production') {
         tree.push(vm)
         vm = vm.$parent
       }
+      console.log(tree, 'tree')
       return '\n\nfound in\n\n' + tree
         .map((vm, i) => `${
           i === 0 ? '---> ' : repeat(' ', 5 + i * 2)

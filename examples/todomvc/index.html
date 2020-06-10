@@ -8,7 +8,11 @@
     <style>[v-cloak] { display: none; }</style>
   </head>
   <body>
+    <section class="sonapp">
+      {{'xxxxx' | formatName}}
+    </section>
     <section class="todoapp">
+      <a-test xxx="xxx" yyy="yyy"></a-test>
       <header class="header">
         <h1>todos</h1>
         <input class="new-todo"
@@ -17,8 +21,10 @@
           v-model="newTodo"
           @keyup.enter="addTodo">
       </header>
+      
       <section class="main" v-show="todos.length" v-cloak>
         <input class="toggle-all" type="checkbox" v-model="allDone">
+        
         <ul class="todo-list">
           <li v-for="todo in filteredTodos"
             class="todo"
@@ -43,6 +49,7 @@
           <strong>{{ remaining }}</strong> {{ remaining | pluralize }} left
         </span>
         <ul class="filters">
+          
           <li><a href="#/all" :class="{ selected: visibility == 'all' }">All</a></li>
           <li><a href="#/active" :class="{ selected: visibility == 'active' }">Active</a></li>
           <li><a href="#/completed" :class="{ selected: visibility == 'completed' }">Completed</a></li>

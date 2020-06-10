@@ -3,6 +3,7 @@ import { inBrowser } from './env'
 export let mark
 export let measure
 
+// 关于性能记录  打标记计时
 if (process.env.NODE_ENV !== 'production') {
   const perf = inBrowser && window.performance
   /* istanbul ignore if */

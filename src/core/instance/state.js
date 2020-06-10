@@ -222,7 +222,7 @@ export function defineComputed (
     sharedPropertyDefinition.get = userDef.get
       ? shouldCache && userDef.cache !== false
         ? createComputedGetter(key)
-        : createGetterInvoker(userDef.get)
+        : createGetterInvoker(userDef.get) // 如果是服务端渲染 直接生成一个调用函数
       : noop
     sharedPropertyDefinition.set = userDef.set || noop
   }
@@ -242,9 +242,11 @@ function createComputedGetter (key) {
   return function computedGetter () {
     const watcher = this._computedWatchers && this._computedWatchers[key]
     if (watcher) {
+      // 如果脏了  就重新计算获取值
       if (watcher.dirty) {
         watcher.evaluate()
       }
+      // 如果有当前的Dep 推入栈
       if (Dep.target) {
         watcher.depend()
       }
@@ -325,6 +327,7 @@ export function stateMixin (Vue: Class<Component>) {
   const propsDef = {}
   propsDef.get = function () { return this._props }
   if (process.env.NODE_ENV !== 'production') {
+    // data赋值拦截提示 不能重写data 只能修改它的属性
     dataDef.set = function () {
       warn(
         'Avoid replacing instance root $data. ' +
@@ -332,16 +335,18 @@ export function stateMixin (Vue: Class<Component>) {
         this
       )
     }
+    // props只读
     propsDef.set = function () {
       warn(`$props is readonly.`, this)
     }
   }
+  // 定义$data $props
   Object.defineProperty(Vue.prototype, '$data', dataDef)
   Object.defineProperty(Vue.prototype, '$props', propsDef)
-
+  // 挂载set  del
   Vue.prototype.$set = set
   Vue.prototype.$delete = del
-
+  // 挂载watch
   Vue.prototype.$watch = function (
     expOrFn: string | Function,
     cb: any,

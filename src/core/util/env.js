@@ -4,6 +4,8 @@
 export const hasProto = '__proto__' in {}
 
 // Browser environment sniffing
+
+// 嗅探各种运行环境
 export const inBrowser = typeof window !== 'undefined'
 export const inWeex = typeof WXEnvironment !== 'undefined' && !!WXEnvironment.platform
 export const weexPlatform = inWeex && WXEnvironment.platform.toLowerCase()

@@ -31,6 +31,10 @@ export function def (obj: Object, key: string, val: any, enumerable?: boolean) {
  * Parse simple path.
  */
 const bailRE = new RegExp(`[^${unicodeLetters}.$_\\d]`)
+// 类似于xxx.xxx.xxx这样的路径访问  支持unicode
+// watch = {
+//  'xxx.xxx.xxx': function () {}
+// }
 export function parsePath (path: string): any {
   if (bailRE.test(path)) {
     return

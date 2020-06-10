@@ -23,6 +23,7 @@ export function isFalse (v: any): boolean %checks {
 /**
  * Check if value is primitive.
  */
+// 判断是否为原始数据类型  string number boolean  symbol
 export function isPrimitive (value: any): boolean %checks {
   return (
     typeof value === 'string' ||
@@ -66,11 +67,13 @@ export function isRegExp (v: any): boolean {
 /**
  * Check if val is a valid array index.
  */
+// 数组索引检测
 export function isValidArrayIndex (val: any): boolean {
   const n = parseFloat(String(val))
   return n >= 0 && Math.floor(n) === n && isFinite(val)
 }
 
+// 检测是否为promise 通过判断是否含有then和catch方法判断
 export function isPromise (val: any): boolean {
   return (
     isDef(val) &&
@@ -161,6 +164,11 @@ export function cached<F: Function> (fn: F): F {
 /**
  * Camelize a hyphen-delimited string.
  */
+// 'xxx-yyy'.replace(/-(\w)/g, (_, c) => {
+//   _ = '-y'
+//   c = 'y'
+// })
+// xxx-yyy = xxxYyy
 const camelizeRE = /-(\w)/g
 export const camelize = cached((str: string): string => {
   return str.replace(camelizeRE, (_, c) => c ? c.toUpperCase() : '')
@@ -282,6 +290,11 @@ export function genStaticKeys (modules: Array<ModuleOptions>): string {
  * Check if two values are loosely equal - that is,
  * if they are plain objects, do they have the same shape?
  */
+// 递归遍历比对
+// 深度比较两个对象是否相等
+// 重点在every
+// 关于日期对象处理 直接比较时间戳 
+// 找出原始值 转换成字符比对
 export function looseEqual (a: any, b: any): boolean {
   if (a === b) return true
   const isObjectA = isObject(a)
@@ -290,12 +303,15 @@ export function looseEqual (a: any, b: any): boolean {
     try {
       const isArrayA = Array.isArray(a)
       const isArrayB = Array.isArray(b)
+      // 全是数组的情况下 先比较长度 然后比较每一个元素的全等性
       if (isArrayA && isArrayB) {
         return a.length === b.length && a.every((e, i) => {
           return looseEqual(e, b[i])
         })
+        // 不要去keys解析日期对象  直接比较时间戳就行了
       } else if (a instanceof Date && b instanceof Date) {
         return a.getTime() === b.getTime()
+        // 如果两个都是对象 遍历key获取原始值比对
       } else if (!isArrayA && !isArrayB) {
         const keysA = Object.keys(a)
         const keysB = Object.keys(b)
@@ -310,6 +326,7 @@ export function looseEqual (a: any, b: any): boolean {
       /* istanbul ignore next */
       return false
     }
+    // 拆分到了最底层 转换成字符比较
   } else if (!isObjectA && !isObjectB) {
     return String(a) === String(b)
   } else {
@@ -322,6 +339,7 @@ export function looseEqual (a: any, b: any): boolean {
  * found in the array (if value is a plain object, the array must
  * contain an object of the same shape), or -1 if it is not present.
  */
+// 查找目标数组中与目标对象全等的索引
 export function looseIndexOf (arr: Array<mixed>, val: mixed): number {
   for (let i = 0; i < arr.length; i++) {
     if (looseEqual(arr[i], val)) return i
@@ -332,11 +350,13 @@ export function looseIndexOf (arr: Array<mixed>, val: mixed): number {
 /**
  * Ensure a function is called only once.
  */
+// 执行一次方法的构建
 export function once (fn: Function): Function {
   let called = false
   return function () {
     if (!called) {
       called = true
+      // this指向当前匿名函数的调用者
       fn.apply(this, arguments)
     }
   }

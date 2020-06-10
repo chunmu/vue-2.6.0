@@ -34,6 +34,34 @@ var filters = {
   }
 }
 
+const extendOptions = {
+  filters: {
+    formatName (value) {
+      return '测试' + value + '格式化name'
+    }
+  }
+}
+const extendOptions2 = {
+  filters: {
+    formatName (value) {
+      return '测试' + value + '格式化name'
+    }
+  }
+}
+Vue.component('a-test', {
+  template: `<div>a-test</div>`,
+  props: ['xxx', 'yyy'],
+  data () {
+    console.log(this, 'props')
+    return {}
+  }
+})
+
+const Son = Vue.extend(extendOptions)
+console.log(extendOptions, 'extendOptions')
+const GrandSon = Son.extend(extendOptions2)
+
+const sonApp = new Son()
 // app Vue instance
 var app = new Vue({
   // app initial state
@@ -155,3 +183,4 @@ onHashChange()
 
 // mount
 app.$mount('.todoapp')
+sonApp.$mount('.sonapp')

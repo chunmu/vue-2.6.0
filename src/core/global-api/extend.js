@@ -16,30 +16,43 @@ export function initExtend (Vue: GlobalAPI) {
   /**
    * Class inheritance
    */
+  // 扩展一般目的是用个性化的options进行扩展
+  // 假定需要扩展的options = targetOptions 则下次继续用这个options去extend
+  // 则会有现成的 已经存在的符合条件的扩展Vue类构造函数
   Vue.extend = function (extendOptions: Object): Function {
     extendOptions = extendOptions || {}
     const Super = this
     const SuperId = Super.cid
     const cachedCtors = extendOptions._Ctor || (extendOptions._Ctor = {})
+    // options上挂载_Ctor用于储存
+    // 假定需要扩展的options = targetOptions 则下次继续用这个options去extend
+    // 则会有现成的 已经存在的符合条件的扩展Vue类构造函数
+    // 缓存已经扩展过的构造函数
     if (cachedCtors[SuperId]) {
       return cachedCtors[SuperId]
     }
-
+    // 扩展一般用来建设组件
     const name = extendOptions.name || Super.options.name
     if (process.env.NODE_ENV !== 'production' && name) {
       validateComponentName(name)
     }
 
+    // 类似Vue的构造方法
     const Sub = function VueComponent (options) {
       this._init(options)
     }
+    // 继承所有Vue上实例原型链上的方法属性
     Sub.prototype = Object.create(Super.prototype)
+    // 调转原型链的构造函数执行Sub
     Sub.prototype.constructor = Sub
     Sub.cid = cid++
+    // 此处调用mergeOptions 顶层vue
+    // Super.options上含有_base 会继承至Sub的options中
     Sub.options = mergeOptions(
       Super.options,
       extendOptions
     )
+    // 指定super
     Sub['super'] = Super
 
     // For props and computed properties, we define the proxy getters on
@@ -53,6 +66,7 @@ export function initExtend (Vue: GlobalAPI) {
     }
 
     // allow further extension/mixin/plugin usage
+    // 继承来自super的属性和方法
     Sub.extend = Super.extend
     Sub.mixin = Super.mixin
     Sub.use = Super.use
@@ -72,14 +86,17 @@ export function initExtend (Vue: GlobalAPI) {
     // been updated.
     Sub.superOptions = Super.options
     Sub.extendOptions = extendOptions
+    // 密封options
     Sub.sealedOptions = extend({}, Sub.options)
 
     // cache constructor
+    // 注意  用的是superId  储存的是super执行扩展之后的构造函数
     cachedCtors[SuperId] = Sub
     return Sub
   }
 }
 
+// 所有访问props中的属性  this.fromParent = this._props.fromParent
 function initProps (Comp) {
   const props = Comp.options.props
   for (const key in props) {

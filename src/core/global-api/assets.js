@@ -7,6 +7,7 @@ export function initAssetRegisters (Vue: GlobalAPI) {
   /**
    * Create asset registration methods.
    */
+  // 注册components  filters directives
   ASSET_TYPES.forEach(type => {
     Vue[type] = function (
       id: string,
@@ -21,6 +22,8 @@ export function initAssetRegisters (Vue: GlobalAPI) {
         }
         if (type === 'component' && isPlainObject(definition)) {
           definition.name = definition.name || id
+          // 如果definition还带有name 则会覆盖注册时指定的name
+          // _base一定指定到最初的Vue
           definition = this.options._base.extend(definition)
         }
         if (type === 'directive' && typeof definition === 'function') {

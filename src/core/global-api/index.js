@@ -20,6 +20,7 @@ import {
 
 export function initGlobalAPI (Vue: GlobalAPI) {
   // config
+  // 设置config的只读性
   const configDef = {}
   configDef.get = () => config
   if (process.env.NODE_ENV !== 'production') {
@@ -34,6 +35,7 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   // exposed util methods.
   // NOTE: these are not considered part of the public API - avoid relying on
   // them unless you are aware of the risk.
+  // 对外暴露的方法 有很大风险 尽量避免覆盖
   Vue.util = {
     warn,
     extend,
@@ -51,6 +53,7 @@ export function initGlobalAPI (Vue: GlobalAPI) {
     return obj
   }
 
+  // 展开之后将会有  components filters directives
   Vue.options = Object.create(null)
   ASSET_TYPES.forEach(type => {
     Vue.options[type + 's'] = Object.create(null)
@@ -59,11 +62,11 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   // this is used to identify the "base" constructor to extend all plain-object
   // components with in Weex's multi-instance scenarios.
   Vue.options._base = Vue
-
+  // 构建内置组件  KeepAlive组件
   extend(Vue.options.components, builtInComponents)
 
-  initUse(Vue)
-  initMixin(Vue)
-  initExtend(Vue)
-  initAssetRegisters(Vue)
+  initUse(Vue) // use api挂载 关于中间件安装插入
+  initMixin(Vue) // 合并options
+  initExtend(Vue) // 实现extend
+  initAssetRegisters(Vue) // 注册全局资源 filters directives components
 }

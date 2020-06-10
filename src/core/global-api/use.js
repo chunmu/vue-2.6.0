@@ -12,8 +12,10 @@ export function initUse (Vue: GlobalAPI) {
     // additional parameters
     const args = toArray(arguments, 1)
     args.unshift(this)
+    // 如果中间件有install方法 执行install 且第一个参数是Vue
     if (typeof plugin.install === 'function') {
       plugin.install.apply(plugin, args)
+      // plugin本省是一个方法
     } else if (typeof plugin === 'function') {
       plugin.apply(null, args)
     }

@@ -24,10 +24,12 @@ export function validateProp (
   propsData: Object,
   vm?: Component
 ): any {
+  // 这边可以有一个用法 propsOptions中定义 和预先给定一个值propsData 可以在options中赋值
   const prop = propOptions[key]
   const absent = !hasOwn(propsData, key)
   let value = propsData[key]
   // boolean casting
+  // 获取props中boolean的默认值和处理
   const booleanIndex = getTypeIndex(Boolean, prop.type)
   if (booleanIndex > -1) {
     if (absent && !hasOwn(prop, 'default')) {
@@ -35,7 +37,10 @@ export function validateProp (
     } else if (value === '' || value === hyphenate(key)) {
       // only cast empty string / same name to boolean if
       // boolean has higher priority
+      // 这边是处理1  xxx: { type: [String, Boolean]}
+      // 这边是处理2  xxx: { type: [Boolean, String]} boolean优先级高 vue中boolean默认值是true
       const stringIndex = getTypeIndex(String, prop.type)
+      // 符合2的情况 默认给
       if (stringIndex < 0 || booleanIndex < stringIndex) {
         value = true
       }
@@ -43,9 +48,11 @@ export function validateProp (
   }
   // check default value
   if (value === undefined) {
+    // 如果propsData中找不到值
     value = getPropDefaultValue(vm, prop, key)
     // since the default value is a fresh copy,
     // make sure to observe it.
+    // 这边开始监听 后面详细解说
     const prevShouldObserve = shouldObserve
     toggleObserving(true)
     observe(value)
@@ -104,6 +111,7 @@ function assertProp (
   vm: ?Component,
   absent: boolean
 ) {
+  // 必传校验
   if (prop.required && absent) {
     warn(
       'Missing required prop: "' + name + '"',
@@ -114,6 +122,7 @@ function assertProp (
   if (value == null && !prop.required) {
     return
   }
+  // 静态类型校验
   let type = prop.type
   let valid = !type || type === true
   const expectedTypes = []
@@ -136,6 +145,7 @@ function assertProp (
     return
   }
   const validator = prop.validator
+  // 用户提供的validator校验  同步方法
   if (validator) {
     if (!validator(value)) {
       warn(

@@ -31,6 +31,7 @@ const strats = config.optionMergeStrategies
 /**
  * Options with restrictions
  */
+
 if (process.env.NODE_ENV !== 'production') {
   strats.el = strats.propsData = function (parent, child, vm, key) {
     if (!vm) {
@@ -46,6 +47,8 @@ if (process.env.NODE_ENV !== 'production') {
 /**
  * Helper that recursively merges two data objects together.
  */
+// 合并data option
+// data中的对象或者数据需要用相对纯净的对象 尽量避免深层嵌套对象
 function mergeData (to: Object, from: ?Object): Object {
   if (!from) return to
   let key, toVal, fromVal
@@ -57,11 +60,14 @@ function mergeData (to: Object, from: ?Object): Object {
   for (let i = 0; i < keys.length; i++) {
     key = keys[i]
     // in case the object is already observed...
+    // 避免该对象已经是设置观察模式
     if (key === '__ob__') continue
     toVal = to[key]
     fromVal = from[key]
     if (!hasOwn(to, key)) {
       set(to, key, fromVal)
+      // 如果是对象 则继续合并和后者覆盖前者
+      // 如果是原始值类型 直接就不用处理  使用to中自己的值
     } else if (
       toVal !== fromVal &&
       isPlainObject(toVal) &&
@@ -81,6 +87,7 @@ export function mergeDataOrFn (
   childVal: any,
   vm?: Component
 ): ?Function {
+  // 没有vue实例的合并 属于extend数据扩展的处理
   if (!vm) {
     // in a Vue.extend merge, both should be functions
     if (!childVal) {
@@ -94,6 +101,7 @@ export function mergeDataOrFn (
     // merged result of both functions... no need to
     // check if parentVal is a function here because
     // it has to be a function to pass previous merges.
+    // 返回一个合并方法 
     return function mergedDataFn () {
       return mergeData(
         typeof childVal === 'function' ? childVal.call(this, this) : childVal,
@@ -101,6 +109,7 @@ export function mergeDataOrFn (
       )
     }
   } else {
+    // 实例间的数据合并 类似mixins中的合并 此时已经能够访问this = vm
     return function mergedInstanceDataFn () {
       // instance merge
       const instanceData = typeof childVal === 'function'
@@ -124,6 +133,7 @@ strats.data = function (
   vm?: Component
 ): ?Function {
   if (!vm) {
+    // 如果不存在实例 data数据配置项 需要是一个方法类型 避免同一个data对象多个vm实例共享 避免出现串数据
     if (childVal && typeof childVal !== 'function') {
       process.env.NODE_ENV !== 'production' && warn(
         'The "data" option should be a function ' +
@@ -143,10 +153,12 @@ strats.data = function (
 /**
  * Hooks and props are merged as arrays.
  */
+// 钩子可以是数组 如果不是 手工设计成数组来合并
 function mergeHook (
   parentVal: ?Array<Function>,
   childVal: ?Function | ?Array<Function>
 ): ?Array<Function> {
+  // 如果childVal不存在 也就是要合并到to的，直接用之前存在的
   const res = childVal
     ? parentVal
       ? parentVal.concat(childVal)
@@ -169,6 +181,7 @@ function dedupeHooks (hooks) {
   return res
 }
 
+// 生命周期钩子的合并策略
 LIFECYCLE_HOOKS.forEach(hook => {
   strats[hook] = mergeHook
 })
@@ -188,7 +201,7 @@ function mergeAssets (
 ): Object {
   const res = Object.create(parentVal || null)
   if (childVal) {
-    process.env.NODE_ENV !== 'production' && assertObjectType(key, childVal, vm)
+    process.env.NODE_ENV !== 'production' && assertObjectType(key, childVal, vm) // 检查 component filter directives的格式  只能是object类型
     return extend(res, childVal)
   } else {
     return res
@@ -205,6 +218,8 @@ ASSET_TYPES.forEach(function (type) {
  * Watchers hashes should not overwrite one
  * another, so we merge them as arrays.
  */
+// watch合并的时候 期望的是两边的监听逻辑都生效 而不是被重写
+// 所以会整合成一个数组的形式来合并和处理
 strats.watch = function (
   parentVal: ?Object,
   childVal: ?Object,
@@ -238,6 +253,7 @@ strats.watch = function (
 /**
  * Other object hashes.
  */
+// props, methods, inject, computed的合并策略相同 都是简单的合并
 strats.props =
 strats.methods =
 strats.inject =
@@ -256,11 +272,13 @@ strats.computed = function (
   if (childVal) extend(ret, childVal)
   return ret
 }
+// provide的合并策略
 strats.provide = mergeDataOrFn
 
 /**
  * Default strategy.
  */
+// 默认的合并策略是舍弃旧使用新
 const defaultStrat = function (parentVal: any, childVal: any): any {
   return childVal === undefined
     ? parentVal
@@ -270,12 +288,14 @@ const defaultStrat = function (parentVal: any, childVal: any): any {
 /**
  * Validate component names
  */
+// 在合并components数据的时候组件名称需要校验
 function checkComponents (options: Object) {
   for (const key in options.components) {
     validateComponentName(key)
   }
 }
 
+// 校验组件名称
 export function validateComponentName (name: string) {
   if (!new RegExp(`^[a-zA-Z][\\-\\.0-9_${unicodeLetters}]*$`).test(name)) {
     warn(
@@ -283,6 +303,7 @@ export function validateComponentName (name: string) {
       'should conform to valid custom element name in html5 specification.'
     )
   }
+  // 是否内建组件  是否关键字保留
   if (isBuiltInTag(name) || config.isReservedTag(name)) {
     warn(
       'Do not use built-in or reserved HTML elements as component ' +
@@ -300,6 +321,8 @@ function normalizeProps (options: Object, vm: ?Component) {
   if (!props) return
   const res = {}
   let i, val, name
+  // props: ['xxxx', 'yyy']
+  // 最终都会组装成 xxxx: { type: null, default: ''}
   if (Array.isArray(props)) {
     i = props.length
     while (i--) {
@@ -311,13 +334,14 @@ function normalizeProps (options: Object, vm: ?Component) {
         warn('props must be strings when using array syntax.')
       }
     }
+  // 如果是对象类型 遍历处理
   } else if (isPlainObject(props)) {
     for (const key in props) {
       val = props[key]
       name = camelize(key)
       res[name] = isPlainObject(val)
-        ? val
-        : { type: val }
+        ? val // xxx: { type: String, ...}
+        : { type: val } // xxx: String
     }
   } else if (process.env.NODE_ENV !== 'production') {
     warn(
@@ -336,6 +360,11 @@ function normalizeInject (options: Object, vm: ?Component) {
   const inject = options.inject
   if (!inject) return
   const normalized = options.inject = {}
+  // 重写了inject
+  // 可以是inject = ['', '']
+  // 可以是inject = {xxx: {from: 'xxx'}}
+  // 可以是inject = {xx: 'xxx'}
+  // 最终都是组装成  xx = {from: 'xxx'}
   if (Array.isArray(inject)) {
     for (let i = 0; i < inject.length; i++) {
       normalized[inject[i]] = { from: inject[i] }
@@ -359,6 +388,7 @@ function normalizeInject (options: Object, vm: ?Component) {
 /**
  * Normalize raw function directives into object format.
  */
+// 指令解析
 function normalizeDirectives (options: Object) {
   const dirs = options.directives
   if (dirs) {
@@ -406,6 +436,15 @@ export function mergeOptions (
   // but only if it is a raw options object that isn't
   // the result of another mergeOptions call.
   // Only merged options has the _base property.
+  // 具有_base属性的讲跳过 不再进行处理
+  // _base = Vue 执行构造函数
+  // 一般是通过Vue.extend()这样的扩展方式 extend中将会继承super，在初次处理时，遍历循环处理所有extends mixins
+  // mergeOptions执行完后 Sub的options将含有_base
+  // 对性能很有帮助
+  // Sub.options = mergeOptions(
+  //   Super.options,
+  //   extendOptions
+  // )
   if (!child._base) {
     if (child.extends) {
       parent = mergeOptions(parent, child.extends, vm)
@@ -419,9 +458,11 @@ export function mergeOptions (
 
   const options = {}
   let key
+  // 开始合并 不知道拆分合并的意义  哦  有可能parent有 而child没有
   for (key in parent) {
     mergeField(key)
   }
+  // 补充合并 parent中没有的 加上补充
   for (key in child) {
     if (!hasOwn(parent, key)) {
       mergeField(key)
@@ -449,11 +490,15 @@ export function resolveAsset (
   if (typeof id !== 'string') {
     return
   }
+  // assets包括 component  filter  directive
   const assets = options[type]
   // check local registration variations first
+  // 如果已经注册过了 直接返回
   if (hasOwn(assets, id)) return assets[id]
   const camelizedId = camelize(id)
+  // 中间带杠的处理 xxx-yyy
   if (hasOwn(assets, camelizedId)) return assets[camelizedId]
+  // 首字母
   const PascalCaseId = capitalize(camelizedId)
   if (hasOwn(assets, PascalCaseId)) return assets[PascalCaseId]
   // fallback to prototype chain

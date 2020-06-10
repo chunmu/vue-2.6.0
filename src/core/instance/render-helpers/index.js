@@ -18,8 +18,8 @@ export function installRenderHelpers (target: any) {
   target._s = toString
   target._l = renderList
   target._t = renderSlot
-  target._q = looseEqual
-  target._i = looseIndexOf
+  target._q = looseEqual // 遍历比对对象的全等性
+  target._i = looseIndexOf // 比较数组对应索引位置的两个元素全等性
   target._m = renderStatic
   target._f = resolveFilter
   target._k = checkKeyCodes

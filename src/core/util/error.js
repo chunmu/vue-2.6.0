@@ -9,6 +9,7 @@ export function handleError (err: Error, vm: any, info: string) {
   if (vm) {
     let cur = vm
     while ((cur = cur.$parent)) {
+      // 尝试获取错误处理钩子 errorCaptured  这个是组件实例级别
       const hooks = cur.$options.errorCaptured
       if (hooks) {
         for (let i = 0; i < hooks.length; i++) {
@@ -47,6 +48,7 @@ export function invokeWithErrorHandling (
 function globalHandleError (err, vm, info) {
   if (config.errorHandler) {
     try {
+      // 获取配置的errorHandler  可用于错误收集上报等自定义处理
       return config.errorHandler.call(null, err, vm, info)
     } catch (e) {
       logError(e, null, 'config.errorHandler')

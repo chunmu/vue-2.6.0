@@ -63,6 +63,7 @@
   /**
    * Check if value is primitive.
    */
+  // 判断是否为原始数据类型  string number boolean  symbol
   function isPrimitive (value) {
     return (
       typeof value === 'string' ||
@@ -102,6 +103,7 @@
   /**
    * Check if val is a valid array index.
    */
+  // 数组索引检测
   function isValidArrayIndex (val) {
     var n = parseFloat(String(val));
     return n >= 0 && Math.floor(n) === n && isFinite(val)
@@ -812,12 +814,15 @@
     }());
   }
 
+  // 三大全局设定
+  // 指令 组件 过滤器
   var ASSET_TYPES = [
     'component',
     'directive',
     'filter'
   ];
 
+  // 生命周期钩子
   var LIFECYCLE_HOOKS = [
     'beforeCreate',
     'created',
@@ -842,59 +847,80 @@
      * Option merge strategies (used in core/util/options)
      */
     // $flow-disable-line
+
+    // 合并策略重写入口
+    // 适用于mixins等选项合并中
+    // 比如像改写vue data () {}的合并规则 一般情况不需要也不允许去修改合并策略 危险行为
+    // optionMergeStrategies['data'] = function (data1, data2) {
+    //   return data
+    // }
     optionMergeStrategies: Object.create(null),
 
     /**
      * Whether to suppress warnings.
      */
+
+    // 保持静默 不输出警告和信息等
     silent: false,
 
     /**
      * Show production mode tip message on boot?
      */
+
+    // 是否弹出当前vue版本非生产版本提示 是否需要切换版本信息 
+    // 一部分是通过vue自己打包系统控制
+    // 也放开给用户重写该变量
     productionTip: "development" !== 'production',
 
     /**
      * Whether to enable devtools
      */
+    // 启用开发这工具钩子   需要研究一下这个工具
     devtools: "development" !== 'production',
 
     /**
      * Whether to record perf
      */
+    // 是否需要记录性能数据 如果true  会输出一些关键节点的统计数据 比如渲染组件耗时 编译模板耗时
     performance: false,
 
     /**
      * Error handler for watcher errors
      */
+    // 错误处理拦截  可以搭配一些工具收集错误信息
     errorHandler: null,
 
     /**
      * Warn handler for watcher warns
      */
+    // 同上 收集警告信息
     warnHandler: null,
 
     /**
      * Ignore certain custom elements
      */
+    // 
     ignoredElements: [],
 
     /**
      * Custom user key aliases for v-on
      */
     // $flow-disable-line
+    // Object.create创建空对象比较纯净
     keyCodes: Object.create(null),
 
     /**
      * Check if a tag is reserved so that it cannot be registered as a
      * component. This is platform-dependent and may be overwritten.
      */
+    // 是否保留标签
     isReservedTag: no,
 
     /**
      * Check if an attribute is reserved so that it cannot be used as a component
      * prop. This is platform-dependent and may be overwritten.
      */
+    // 是否保留属性
     isReservedAttr: no,
 
     /**
@@ -963,6 +989,7 @@
 
     formatComponentName = function (vm, includeFile) {
       if (vm.$root === vm) {
+        // 如果是根节点  返回<Root>标签
         return '<Root>'
       }
       var options = typeof vm === 'function' && vm.cid != null
@@ -983,6 +1010,15 @@
       )
     };
 
+    // repeat工具方法的实现
+    // 假设n = 1
+    // 1 % 2 === 1
+    // res += str
+
+    // 假设n === 3
+    // 3 % 2 === 1
+    // str复刻
+    // 左移运算 后续str都是翻倍长度之后的计算  n左移之后的值 都是2的某个倍数
     var repeat = function (str, n) {
       var res = '';
       while (n) {
