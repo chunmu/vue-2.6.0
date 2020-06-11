@@ -82,25 +82,28 @@ export function parse (
 
   platformIsPreTag = options.isPreTag || no
   platformMustUseProp = options.mustUseProp || no
-  platformGetTagNamespace = options.getTagNamespace || no
-  const isReservedTag = options.isReservedTag || no
+  platformGetTagNamespace = options.getTagNamespace || no // 获取命名空间 一些特殊标签具有命名空间
+  const isReservedTag = options.isReservedTag || no // 关键字 保留字标签
   maybeComponent = (el: ASTElement) => !!el.component || !isReservedTag(el.tag)
 
   transforms = pluckModuleFunction(options.modules, 'transformNode')
+  console.log(transforms, 'transforms')
+  // transformNode各种节点置换处理
   preTransforms = pluckModuleFunction(options.modules, 'preTransformNode')
   postTransforms = pluckModuleFunction(options.modules, 'postTransformNode')
 
-  delimiters = options.delimiters
+  delimiters = options.delimiters // 过滤器分隔符 默认是单个管道符 |
 
   const stack = []
   const preserveWhitespace = options.preserveWhitespace !== false
   const whitespaceOption = options.whitespace
-  let root
-  let currentParent
-  let inVPre = false
-  let inPre = false
+  let root // 根节点
+  let currentParent // 当前父级
+  let inVPre = false // 是否在v-pre指令之间的内容
+  let inPre = false // 是否是在pre标签内
   let warned = false
 
+  // 有些报错只需要提示一次
   function warnOnce (msg, range) {
     if (!warned) {
       warned = true
