@@ -21,7 +21,7 @@ export class CodegenState {
   pre: boolean;
 
   constructor (options: CompilerOptions) {
-    this.options = options
+    this.options = options // 编译配置
     this.warn = options.warn || baseWarn
     this.transforms = pluckModuleFunction(options.modules, 'transformCode')
     this.dataGenFns = pluckModuleFunction(options.modules, 'genData')
@@ -44,18 +44,23 @@ export function generate (
   options: CompilerOptions
 ): CodegenResult {
   const state = new CodegenState(options)
+  // vm._c = (a, b, c, d) => createElement(vm, a, b, c, d, false)
   const code = ast ? genElement(ast, state) : '_c("div")'
   return {
+    // vue的核心之一 包装with代码作用域 with(obj)语法 接下来的作用域中 直接访问的变量都是以obj作为宿主访问  也就是obj.xxx
+    // 这边this也就是 vm实例 访问this中的_data _props，如果不存在 就是常见的undefined警告了
     render: `with(this){return ${code}}`,
     staticRenderFns: state.staticRenderFns
   }
 }
 
 export function genElement (el: ASTElement, state: CodegenState): string {
+  // 如果存在parent
   if (el.parent) {
+    // pre标志
     el.pre = el.pre || el.parent.pre
   }
-
+  // 如果根节点就是静态节点
   if (el.staticRoot && !el.staticProcessed) {
     return genStatic(el, state)
   } else if (el.once && !el.onceProcessed) {
@@ -100,12 +105,19 @@ function genStatic (el: ASTElement, state: CodegenState): string {
   // Some elements (templates) need to behave differently inside of a v-pre
   // node.  All pre nodes are static roots, so we can use this as a location to
   // wrap a state change and reset it upon exiting the pre node.
+  // 这边是一个state暂存器  类似一个开关 在处理完所有static内容后 恢复为state最初的pre标志
   const originalPreState = state.pre
   if (el.pre) {
+    // 在pre下所有element也应该有pre=true的标识 且会影响到data的生成
     state.pre = el.pre
   }
+  // 从这段逻辑来看  它把各个静态根节点渲染方法分截存储  
+  // 如果存在多个静态分段 就会有多个静态根节点 每个都会生成一段静态渲染代码
+  // 推入staticRenderFns
   state.staticRenderFns.push(`with(this){return ${genElement(el, state)}}`)
   state.pre = originalPreState
+  // target._m = renderStatic
+  // 返回当前静态渲染code片段
   return `_m(${
     state.staticRenderFns.length - 1
   }${
@@ -118,9 +130,11 @@ function genOnce (el: ASTElement, state: CodegenState): string {
   el.onceProcessed = true
   if (el.if && !el.ifProcessed) {
     return genIf(el, state)
+    // once在static中
   } else if (el.staticInFor) {
     let key = ''
     let parent = el.parent
+    // 向上追溯for标签所在el
     while (parent) {
       if (parent.for) {
         key = parent.key
@@ -128,6 +142,7 @@ function genOnce (el: ASTElement, state: CodegenState): string {
       }
       parent = parent.parent
     }
+    // 追溯中未发现for循环中el的key标识 发出警告 但是并未中断代码块生成
     if (!key) {
       process.env.NODE_ENV !== 'production' && state.warn(
         `v-once can only be used inside v-for that is keyed. `,
@@ -135,6 +150,7 @@ function genOnce (el: ASTElement, state: CodegenState): string {
       )
       return genElement(el, state)
     }
+    // target._o = markOnce 渲染once相关函数  onceId
     return `_o(${genElement(el, state)},${state.onceId++},${key})`
   } else {
     return genStatic(el, state)
@@ -148,6 +164,7 @@ export function genIf (
   altEmpty?: string
 ): string {
   el.ifProcessed = true // avoid recursion
+  // 处理conditions
   return genIfConditions(el.ifConditions.slice(), state, altGen, altEmpty)
 }
 
@@ -158,6 +175,7 @@ function genIfConditions (
   altEmpty?: string
 ): string {
   if (!conditions.length) {
+    // target._e = createEmptyVNode       // 生成一个空vnode节点
     return altEmpty || '_e()'
   }
 
@@ -193,6 +211,7 @@ export function genFor (
   const iterator1 = el.iterator1 ? `,${el.iterator1}` : ''
   const iterator2 = el.iterator2 ? `,${el.iterator2}` : ''
 
+  // key检查 for循环中需要key来处理diff算法
   if (process.env.NODE_ENV !== 'production' &&
     state.maybeComponent(el) &&
     el.tag !== 'slot' &&
@@ -209,6 +228,7 @@ export function genFor (
   }
 
   el.forProcessed = true // avoid recursion
+  // target._l = renderList
   return `${altHelper || '_l'}((${exp}),` +
     `function(${alias}${iterator1}${iterator2}){` +
       `return ${(altGen || genElement)(el, state)}` +

@@ -45,6 +45,9 @@ function add (
   capture: boolean,
   passive: boolean
 ) {
+  // https://github.com/kaola-fed/blog/issues/259
+  // https://github.com/DDFE/DDFE-blog/issues/24
+  // https://www.dazhuanlan.com/2020/04/02/5e84d829e2cfb/
   // async edge case #6566: inner click event triggers patch, event handler
   // attached to outer element during patch, and triggered again. This
   // happens because browsers fire microtask ticks between event propagation.

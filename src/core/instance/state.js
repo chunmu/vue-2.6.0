@@ -322,6 +322,13 @@ export function stateMixin (Vue: Class<Component>) {
   // flow somehow has problems with directly declared definition object
   // when using Object.defineProperty, so we have to procedurally build up
   // the object here.
+  /**
+   * 数据劫持 这也是Vue实现原理核心 这边用于数据代理
+   * 所有Vue实例中形如this.xxx访问data都是在访问this._data.xxx
+   * 所有Vue实例中形如this.xxx访问props都是在访问this._props.xxx
+   * 劫持data set 对更改this.data指向进行更改的操作进行告警
+   * 劫持props set 提示该对象只读 
+   * */
   const dataDef = {}
   dataDef.get = function () { return this._data }
   const propsDef = {}

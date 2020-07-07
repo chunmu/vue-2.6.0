@@ -33,6 +33,7 @@ const normalizeEvent = cached((name: string): {
   }
 })
 
+// 根绝用户提供的事件handler进行一个function包裹 用户可以定义一个数组handlers
 export function createFnInvoker (fns: Function | Array<Function>, vm: ?Component): Function {
   function invoker () {
     const fns = invoker.fns
@@ -62,21 +63,25 @@ export function updateListeners (
   for (name in on) {
     def = cur = on[name]
     old = oldOn[name]
+    // 规范化事件名称 包括冒泡标记 once标记 passive标记
     event = normalizeEvent(name)
     /* istanbul ignore if */
     if (__WEEX__ && isPlainObject(def)) {
       cur = def.handler
       event.params = def.params
     }
+    // 无效绑定警告
     if (isUndef(cur)) {
       process.env.NODE_ENV !== 'production' && warn(
         `Invalid handler for event "${event.name}": got ` + String(cur),
         vm
       )
     } else if (isUndef(old)) {
+      // 是否已经构建过handler了
       if (isUndef(cur.fns)) {
         cur = on[name] = createFnInvoker(cur, vm)
       }
+      // 如果是once修饰 创建特有的调用方法
       if (isTrue(event.once)) {
         cur = on[name] = createOnceHandler(event.name, cur, event.capture)
       }
@@ -86,6 +91,7 @@ export function updateListeners (
       on[name] = old
     }
   }
+  // oldListeners中存在 listeners中不存在的  当成需要注销的事件
   for (name in oldOn) {
     if (isUndef(on[name])) {
       event = normalizeEvent(name)

@@ -48,6 +48,7 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
     // microtask queue but the queue isn't being flushed, until the browser
     // needs to do some other work, e.g. handle a timer. Therefore we can
     // "force" the microtask queue to be flushed by adding an empty timer.
+    // ios移动端在有setTimeout的触发的情况下  会执行promise微任务
     if (isIOS) setTimeout(noop)
   }
   isUsingMicroTask = true
@@ -119,6 +120,7 @@ export function nextTick (cb?: Function, ctx?: Object) {
     timerFunc()
   }
   // $flow-disable-line
+  // 空cb并没有看出有什么意义
   if (!cb && typeof Promise !== 'undefined') {
     return new Promise(resolve => {
       _resolve = resolve

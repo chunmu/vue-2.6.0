@@ -94,7 +94,7 @@ export default ({
    * Ignore certain custom elements
    */
   // 
-  ignoredElements: [],
+  ignoredElements: ['section'],
 
   /**
    * Custom user key aliases for v-on

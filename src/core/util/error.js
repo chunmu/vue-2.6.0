@@ -35,6 +35,30 @@ export function invokeWithErrorHandling (
 ) {
   let res
   try {
+    // const modulea = {
+    //   x: 'a',
+    //   getX: function() {
+    //     return this.x;
+    //   }
+    // };
+    // const moduleb = {
+    //   x: 'b',
+    //   getX: function() {
+    //     return this.x;
+    //   }
+    // };
+    // const modulec = {
+    //   x: 'c',
+    //   getX: function() {
+    //     return this.x;
+    //   }
+    // };
+    // let boundGetX = modulea.getX;
+    // console.log(boundGetX.apply(modulec));
+    // boundGetX = modulea.getX.bind(moduleb);
+    // console.log(boundGetX.apply(null));
+    // console.log(boundGetX.apply(modulec));
+    // invokeWithErrorHandling是一个公用方法 有时需要context  有时不需要  context=null的情况是 占位
     res = args ? handler.apply(context, args) : handler.call(context)
     if (isPromise(res)) {
       res.catch(e => handleError(e, vm, info + ` (Promise/async)`))

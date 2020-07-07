@@ -16,9 +16,6 @@ export function initExtend (Vue: GlobalAPI) {
   /**
    * Class inheritance
    */
-  // 扩展一般目的是用个性化的options进行扩展
-  // 假定需要扩展的options = targetOptions 则下次继续用这个options去extend
-  // 则会有现成的 已经存在的符合条件的扩展Vue类构造函数
   Vue.extend = function (extendOptions: Object): Function {
     extendOptions = extendOptions || {}
     const Super = this
@@ -59,10 +56,10 @@ export function initExtend (Vue: GlobalAPI) {
     // the Vue instances at extension time, on the extended prototype. This
     // avoids Object.defineProperty calls for each instance created.
     if (Sub.options.props) {
-      initProps(Sub)
+      initProps(Sub) // 设置props代理访问  this.xxx = this._props.xxx
     }
     if (Sub.options.computed) {
-      initComputed(Sub)
+      initComputed(Sub) // 设计到即时相应部分 后续关注
     }
 
     // allow further extension/mixin/plugin usage

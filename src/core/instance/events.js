@@ -52,6 +52,7 @@ export function updateComponentListeners (
 export function eventsMixin (Vue: Class<Component>) {
   const hookRE = /^hook:/
   Vue.prototype.$on = function (event: string | Array<string>, fn: Function): Component {
+    console.log('on event')
     const vm: Component = this
     if (Array.isArray(event)) {
       for (let i = 0, l = event.length; i < l; i++) {
@@ -81,7 +82,7 @@ export function eventsMixin (Vue: Class<Component>) {
 
   Vue.prototype.$off = function (event?: string | Array<string>, fn?: Function): Component {
     const vm: Component = this
-    // all
+    // all 解除所有事件 清空_events事件map
     if (!arguments.length) {
       vm._events = Object.create(null)
       return vm
@@ -89,6 +90,7 @@ export function eventsMixin (Vue: Class<Component>) {
     // array of events
     if (Array.isArray(event)) {
       for (let i = 0, l = event.length; i < l; i++) {
+        // 多个事件逐个解除
         vm.$off(event[i], fn)
       }
       return vm
@@ -98,6 +100,7 @@ export function eventsMixin (Vue: Class<Component>) {
     if (!cbs) {
       return vm
     }
+    // 如果不存在fn 直接解除指定事件
     if (!fn) {
       vm._events[event] = null
       return vm
@@ -105,9 +108,13 @@ export function eventsMixin (Vue: Class<Component>) {
     // specific handler
     let cb
     let i = cbs.length
+    // 解除指定事件
     while (i--) {
       cb = cbs[i]
+      // cb === fn普通注册事件  cb.fn === fn解除once注册事件
+      // 所以这边解除的时候  fn不能有引用改变的情况 否则解除失败
       if (cb === fn || cb.fn === fn) {
+        // 剔除指定事件
         cbs.splice(i, 1)
         break
       }
@@ -132,9 +139,11 @@ export function eventsMixin (Vue: Class<Component>) {
     let cbs = vm._events[event]
     if (cbs) {
       cbs = cbs.length > 1 ? toArray(cbs) : cbs
+      // this.$emit(key, arg1, arg2, arg3)
       const args = toArray(arguments, 1)
       const info = `event handler for "${event}"`
       for (let i = 0, l = cbs.length; i < l; i++) {
+        console.log('get in')
         invokeWithErrorHandling(cbs[i], vm, args, vm, info)
       }
     }

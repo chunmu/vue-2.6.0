@@ -94,7 +94,6 @@ if (process.env.NODE_ENV !== 'production') {
         tree.push(vm)
         vm = vm.$parent
       }
-      console.log(tree, 'tree')
       return '\n\nfound in\n\n' + tree
         .map((vm, i) => `${
           i === 0 ? '---> ' : repeat(' ', 5 + i * 2)

@@ -2,6 +2,7 @@
 // and hash-based routing in ~150 lines.
 
 // localStorage persistence
+'use strict';
 var STORAGE_KEY = 'todos-vuejs-2.0'
 var todoStorage = {
   fetch: function () {
@@ -33,37 +34,42 @@ var filters = {
     })
   }
 }
+const grandSon = {
+  name: 'grand-son',
+  template: `<div>grand-son</div>`,
+  created () {
+    this.$emit('input', 'xxxxxx')
+  }
+}
 
-const extendOptions = {
-  filters: {
-    formatName (value) {
-      return '测试' + value + '格式化name'
-    }
-  }
-}
-const extendOptions2 = {
-  filters: {
-    formatName (value) {
-      return '测试' + value + '格式化name'
-    }
-  }
-}
-Vue.component('a-test', {
-  template: `<div>a-test</div>`,
-  props: ['xxx', 'yyy'],
+const child = {
+  components: {
+    grandSon
+  },
+  name: 'child',
+  template: `<div>{{name}}
+    <grand-son v-model="xxx"></grand-son>
+  </div>`,
   data () {
-    console.log(this, 'props')
-    return {}
+    return {
+      xxx: 'xx',
+      name: Date.now(),
+      list: ['a1', 'a2', 'a3', 'a4']
+    }
+  },
+  created () {
+    setTimeout(() => {
+      this.list = ['a2', 'a2', 'a3', 'a4']
+    }, 1000)
   }
-})
+}
 
-const Son = Vue.extend(extendOptions)
-console.log(extendOptions, 'extendOptions')
-const GrandSon = Son.extend(extendOptions2)
 
-const sonApp = new Son()
 // app Vue instance
 var app = new Vue({
+  components: {
+    child
+  },
   // app initial state
   data: {
     todos: todoStorage.fetch(),
@@ -183,4 +189,3 @@ onHashChange()
 
 // mount
 app.$mount('.todoapp')
-sonApp.$mount('.sonapp')

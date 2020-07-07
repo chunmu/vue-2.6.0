@@ -8,6 +8,7 @@ export function createElement (tagName: string, vnode: VNode): Element {
     return elm
   }
   // false or null will remove the attribute but undefined will not
+  // 单独处理multiple属性
   if (vnode.data && vnode.data.attrs && vnode.data.attrs.multiple !== undefined) {
     elm.setAttribute('multiple', 'multiple')
   }

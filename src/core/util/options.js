@@ -445,6 +445,10 @@ export function mergeOptions (
   //   Super.options,
   //   extendOptions
   // )
+  // 一般特指构造函数上的options 具有不应该变动的特征  用户自定义options扩展 有可能后续有改变的情况存在
+  // 从逻辑上看 含有base的都是构造函数上的options
+  // Vue.extend(customOptions)
+  // customOptions保持独立 生成的options含有_base
   if (!child._base) {
     if (child.extends) {
       parent = mergeOptions(parent, child.extends, vm)

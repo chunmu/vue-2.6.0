@@ -43,15 +43,18 @@ const componentVNodeHooks = {
       // kept-alive components, treat as a patch
       const mountedNode: any = vnode // work around flow
       componentVNodeHooks.prepatch(mountedNode, mountedNode)
+      
     } else {
       const child = vnode.componentInstance = createComponentInstanceForVnode(
         vnode,
         activeInstance
       )
-      child.$mount(hydrating ? vnode.elm : undefined, hydrating)
+      child.$mount(hydrating ? 
+        vnode.elm : undefined, hydrating)
     }
   },
 
+  // 预先属性继承
   prepatch (oldVnode: MountedComponentVNode, vnode: MountedComponentVNode) {
     const options = vnode.componentOptions
     const child = vnode.componentInstance = oldVnode.componentInstance

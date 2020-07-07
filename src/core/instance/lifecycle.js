@@ -60,6 +60,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
     const vm: Component = this
     const prevEl = vm.$el
     const prevVnode = vm._vnode
+    // 设置当前激活实例 用来挂载子组件 完成父子绑定
     const restoreActiveInstance = setActiveInstance(vm)
     vm._vnode = vnode
     // Vue.prototype.__patch__ is injected in entry points
@@ -165,7 +166,6 @@ export function mountComponent (
     }
   }
   callHook(vm, 'beforeMount')
-
   let updateComponent
   /* istanbul ignore if */
   if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
@@ -194,6 +194,8 @@ export function mountComponent (
   // we set this to vm._watcher inside the watcher's constructor
   // since the watcher's initial patch may call $forceUpdate (e.g. inside child
   // component's mounted hook), which relies on vm._watcher being already defined
+  // 其实是把整个实例给watch了，在执行updateComponent的过程中 会执行到所有的data computed，所以任何一个属性变化
+  // 都会触发一次组件vnode的patch
   new Watcher(vm, updateComponent, noop, {
     before () {
       if (vm._isMounted && !vm._isDestroyed) {
@@ -339,6 +341,7 @@ export function callHook (vm: Component, hook: string) {
       invokeWithErrorHandling(handlers[i], vm, null, vm, info)
     }
   }
+  // 如果有钩子  emit钩子  _hasHookEvent可以拦截没有钩子监听的逻辑
   if (vm._hasHookEvent) {
     vm.$emit('hook:' + hook)
   }
